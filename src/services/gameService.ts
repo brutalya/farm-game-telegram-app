@@ -1,97 +1,112 @@
-// src/services/gameService.ts
-import { Facility } from '../models/facility';
-import { GameState } from '../models/gameState';
+// src/services/GameService.ts
+import { GameState } from '../models/gamestate';
+import { Plant } from '../models/plant';
 import { Player } from '../models/player';
-import { Process } from '../models/process';
-import { Resource } from '../models/resource';
-import {
-	InsufficientResourcesError,
-	PlayerNotFoundError,
-} from '../utils/errors';
 
-class GameService {
+export class GameService {
 	private gameState: GameState;
 
 	constructor() {
-		this.gameState = this.initializeGameState();
+		this.gameState = new GameState();
 	}
 
-	private initializeGameState(): GameState {
-		return {
-			players: {},
-			resources: {
-				wheat: {
-					id: 'wheat',
-					type: 'crop',
-					name: 'Wheat',
-					properties: { growthTime: 60 },
-				},
-			},
-			facilities: {
-				field: {
-					id: 'field',
-					type: 'production',
-					name: 'Field',
-					capacity: 1,
-					processes: ['plantWheat'],
-					upgrades: [],
-				},
-			},
-			processes: {
-				plantWheat: {
-					id: 'plantWheat',
-					name: 'Plant Wheat',
-					inputs: [{ resourceId: 'wheat', quantity: 1 }],
-					outputs: [{ resourceId: 'wheat', quantity: 2 }],
-					duration: 60,
-					successProbability: 1,
-				},
-			},
-		};
-	}
-
-	public createPlayer(playerId: string): Player {
-		if (this.gameState.players[playerId]) {
-			throw new Error('Player already exists');
-		}
-		const newPlayer: Player = {
-			id: playerId,
-			resources: { wheat: 10 },
-			facilities: ['field'],
-			currency: 100,
-		};
-		this.gameState.players[playerId] = newPlayer;
-		return newPlayer;
-	}
-
-	public getPlayerState(playerId: string): Player {
-		const player = this.gameState.players[playerId];
-		if (!player) {
-			throw new PlayerNotFoundError(playerId);
-		}
+	createPlayer(playerId: string): Player {
+		const player = new Player(playerId);
+		this.gameState.players.set(playerId, player);
 		return player;
 	}
 
-	public plantWheat(playerId: string): boolean {
-		const player = this.gameState.players[playerId];
-		if (!player) {
-			throw new PlayerNotFoundError(playerId);
-		}
-		if (player.resources['wheat'] < 1) {
-			throw new InsufficientResourcesError('wheat');
-		}
-		player.resources['wheat'] -= 1;
-		setTimeout(() => this.harvestWheat(playerId), 60000); // 60 seconds for testing
+	getPlayer(playerId: string): Player | undefined {
+		return this.gameState.players.get(playerId);
+	}
+
+	plantCrop(playerId: string, plantId: string): boolean {
+		const player = this.getPlayer(playerId);
+		const plant = this.gameState.plants.get(plantId);
+
+		if (!player || !plant) return false;
+
+		const emptySpot = player.field.spots.findIndex((spot) => spot === null);
+		if (emptySpot === -1 || player.money < plant.cost) return false;
+
+		player.money -= plant.cost;
+		player.field.spots[emptySpot] = plant;
+		player.field.plantingTimes[emptySpot] = Date.now();
+
 		return true;
 	}
 
-	private harvestWheat(playerId: string): void {
-		const player = this.gameState.players[playerId];
-		if (!player) {
-			return;
-		}
-		player.resources['wheat'] = (player.resources['wheat'] || 0) + 2;
+	harvestCrop(playerId: string, spotIndex: number): boolean {
+		const player = this.getPlayer(playerId);
+		if (!player) return false;
+
+		const plant = player.field.spots[spotIndex];
+		const plantingTime = player.field.plantingTimes[spotIndex];
+
+		if (!plant || !plantingTime) return false;
+
+		const currentTime = Date.now();
+		if (currentTime - plantingTime < plant.growTime * 1000) return false;
+
+		player.field.spots[spotIndex] = null;
+		player.field.plantingTimes[spotIndex] = null;
+
+		const currentAmount = player.inventory.get(plant.id) || 0;
+		player.inventory.set(plant.id, currentAmount + 1);
+
+		return true;
+	}
+
+	sellCrop(playerId: string, plantId: string, amount: number): boolean {
+		const player = this.getPlayer(playerId);
+		const plant = this.gameState.plants.get(plantId);
+
+		if (!player || !plant) return false;
+
+		const inventoryAmount = player.inventory.get(plantId) || 0;
+		if (inventoryAmount < amount) return false;
+
+		player.inventory.set(plantId, inventoryAmount - amount);
+		player.money += plant.sellPrice * amount;
+
+		return true;
+	}
+
+	getFieldInfo(playerId: string): any {
+		const player = this.getPlayer(playerId);
+		if (!player) return null;
+
+		return {
+			crops: player.field.spots.map((plant, index) => ({
+				plant: plant ? plant.name : null,
+				timeLeft: plant
+					? Math.max(
+							0,
+							plant.growTime -
+								(Date.now() - (player.field.plantingTimes[index] || 0)) / 1000
+					  )
+					: null,
+				isReady: plant
+					? (Date.now() - (player.field.plantingTimes[index] || 0)) / 1000 >=
+					  plant.growTime
+					: false,
+			})),
+			freeSpots: player.field.spots.filter((spot) => spot === null).length,
+		};
+	}
+
+	getPlayerInfo(playerId: string): any {
+		const player = this.getPlayer(playerId);
+		if (!player) return null;
+
+		return {
+			money: player.money,
+			inventory: Array.from(player.inventory.entries()).map(
+				([plantId, amount]) => ({
+					plant: this.gameState.plants.get(plantId)?.name,
+					amount,
+				})
+			),
+		};
 	}
 }
-
-export default new GameService();

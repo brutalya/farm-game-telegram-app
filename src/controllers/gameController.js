@@ -1,53 +1,40 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const gameService_1 = __importDefault(require("../services/gameService"));
-const errors_1 = require("../utils/errors");
+exports.GameController = void 0;
+const gameService_1 = require("../services/gameService");
 class GameController {
-    createPlayer(req, res) {
-        try {
+    constructor() {
+        this.createPlayer = (req, res) => {
             const { playerId } = req.body;
-            const newPlayer = gameService_1.default.createPlayer(playerId);
-            res.status(201).json(newPlayer);
-        }
-        catch (error) {
-            res.status(400).json({ message: this.getErrorMessage(error) });
-        }
-    }
-    getPlayerState(req, res) {
-        try {
+            const player = this.gameService.createPlayer(playerId);
+            res.json(player);
+        };
+        this.plantCrop = (req, res) => {
+            const { playerId, plantId } = req.body;
+            const success = this.gameService.plantCrop(playerId, plantId);
+            res.json({ success });
+        };
+        this.harvestCrop = (req, res) => {
+            const { playerId, spotIndex } = req.body;
+            const success = this.gameService.harvestCrop(playerId, spotIndex);
+            res.json({ success });
+        };
+        this.sellCrop = (req, res) => {
+            const { playerId, plantId, amount } = req.body;
+            const success = this.gameService.sellCrop(playerId, plantId, amount);
+            res.json({ success });
+        };
+        this.getFieldInfo = (req, res) => {
             const { playerId } = req.params;
-            const playerState = gameService_1.default.getPlayerState(playerId);
-            res.status(200).json(playerState);
-        }
-        catch (error) {
-            res.status(404).json({ message: this.getErrorMessage(error) });
-        }
-    }
-    plantWheat(req, res) {
-        try {
-            const { playerId } = req.body;
-            const success = gameService_1.default.plantWheat(playerId);
-            res.status(200).json({ message: 'Wheat planted successfully' });
-        }
-        catch (error) {
-            if (error instanceof errors_1.PlayerNotFoundError) {
-                res.status(404).json({ message: error.message });
-            }
-            else if (error instanceof errors_1.InsufficientResourcesError) {
-                res.status(400).json({ message: error.message });
-            }
-            else {
-                res.status(500).json({ message: 'An unexpected error occurred' });
-            }
-        }
-    }
-    getErrorMessage(error) {
-        if (error instanceof Error)
-            return error.message;
-        return String(error);
+            const fieldInfo = this.gameService.getFieldInfo(playerId);
+            res.json(fieldInfo);
+        };
+        this.getPlayerInfo = (req, res) => {
+            const { playerId } = req.params;
+            const playerInfo = this.gameService.getPlayerInfo(playerId);
+            res.json(playerInfo);
+        };
+        this.gameService = new gameService_1.GameService();
     }
 }
-exports.default = new GameController();
+exports.GameController = GameController;

@@ -1,11 +1,15 @@
 // src/routes/index.ts
 import { Router } from 'express';
-import gameController from '../controllers/gameController';
+import { GameController } from '../controllers/gameController';
 
 const router = Router();
+const gameController = new GameController();
 
 router.post('/players', gameController.createPlayer);
-router.get('/players/:playerId', gameController.getPlayerState);
-router.post('/plant-wheat', gameController.plantWheat);
+router.post('/plant', gameController.plantCrop);
+router.post('/harvest', gameController.harvestCrop);
+router.post('/sell', gameController.sellCrop);
+router.get('/field/:playerId', gameController.getFieldInfo);
+router.get('/player/:playerId', gameController.getPlayerInfo);
 
 export default router;
