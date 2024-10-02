@@ -1,10 +1,12 @@
-// src/app.ts
 import express from 'express';
-import routes from './routes';
+import router from './routes';
 
 const app = express();
 
+// Enable JSON parsing middleware
 app.use(express.json());
-app.use('/api', routes);
+
+// Use routes
+app.use('/api', router);
 
 export default app;
