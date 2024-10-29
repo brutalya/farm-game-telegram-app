@@ -13,15 +13,18 @@ export class Player {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string;
 
-	@Column({ unique: true })
-	name!: string;
+	@Column({ unique: true }) // Unique identifier for each Telegram user
+	telegramId!: string;
 
-	@Column()
+	@Column({ type: 'int', default: 1000 }) // Starting money
 	money!: number;
-
-	@OneToOne(() => Field, (field) => field.player, { cascade: true })
-	field!: Field;
 
 	@OneToMany(() => Inventory, (inventory) => inventory.player)
 	inventory!: Inventory[];
+
+	@OneToOne(() => Field, (field) => field.player) // One-to-one relationship with Field
+	field!: Field;
+
+	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+	createdAt!: Date;
 }

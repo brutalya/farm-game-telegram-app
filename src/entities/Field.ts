@@ -11,19 +11,16 @@ import { Spot } from './Spot';
 
 @Entity()
 export class Field {
-	@PrimaryGeneratedColumn()
-	id!: number;
+	@PrimaryGeneratedColumn('uuid')
+	id!: string;
 
-	@Column()
-	tier!: number;
-
-	@Column()
-	size!: number;
-
-	@OneToOne(() => Player, (player) => player.field)
+	@OneToOne(() => Player)
 	@JoinColumn()
 	player!: Player;
 
-	@OneToMany(() => Spot, (spot) => spot.field, { cascade: true })
+	@OneToMany(() => Spot, (spot) => spot.field)
 	spots!: Spot[];
+
+	@Column({ type: 'int', default: 25 }) // Default size for all fields
+	size!: number;
 }

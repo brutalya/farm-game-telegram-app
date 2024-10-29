@@ -4,15 +4,15 @@ import { Player } from './Player';
 
 @Entity()
 export class Inventory {
-	@PrimaryGeneratedColumn()
-	id!: number;
+	@PrimaryGeneratedColumn('uuid')
+	id!: string;
 
-	@ManyToOne(() => Player, { cascade: true }) // Link to Player
+	@ManyToOne(() => Player, (player) => player.inventory)
 	player!: Player;
 
-	@ManyToOne(() => Plant, { cascade: true }) // Link to Plant
+	@ManyToOne(() => Plant)
 	plant!: Plant;
 
-	@Column()
-	amount!: number; // Number of plants in the player's inventory
+	@Column({ type: 'int', default: 0 })
+	amount!: number; // Amount of harvested plants
 }

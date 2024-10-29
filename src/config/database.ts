@@ -5,6 +5,7 @@ import { Field } from '../entities/Field';
 import { Inventory } from '../entities/Inventory';
 import { Plant } from '../entities/Plant';
 import { Player } from '../entities/Player';
+import { PlayerPlants } from '../entities/PlayerPlants';
 import { Spot } from '../entities/Spot';
 
 dotenv.config();
@@ -16,7 +17,7 @@ export const AppDataSource = new DataSource({
 	username: process.env.DB_USER,
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_NAME,
-	entities: [Player, Field, Plant, Inventory, Spot], //['dist/entities/**/*.js'], // Use compiled JS files
+	entities: [Player, Field, Plant, Inventory, Spot, PlayerPlants], //['dist/entities/**/*.js'], // Use compiled JS files
 	synchronize: true,
 	logging: true,
 });
