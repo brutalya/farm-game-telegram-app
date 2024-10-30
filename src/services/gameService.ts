@@ -37,6 +37,8 @@ export class GameService {
 			.map((key) => `${key}=${data[key]}`)
 			.join('\n');
 
+		console.log('dataCheckString: ', dataCheckString);
+
 		// Step 2: Calculate HMAC using SHA-256
 		const secretKey = crypto
 			.createHash('sha256')
@@ -48,6 +50,8 @@ export class GameService {
 			.digest('hex');
 
 		// Step 3: Compare the calculated hash with the provided hash
+		console.log('calculatedHash: ', calculatedHash);
+		console.log('hash: ', hash);
 		return calculatedHash === hash;
 	}
 

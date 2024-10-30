@@ -18,7 +18,6 @@ export class GameController {
 	authTG = async (req: Request, res: Response) => {
 		const { id: telegramId, username, hash, ...data } = req.body;
 		console.log('Login payload:', telegramId, username, hash, data);
-		console.log('req:', req);
 
 		try {
 			// Convert `data` to `Record<string, string>` by filtering and mapping
@@ -36,8 +35,11 @@ export class GameController {
 				hash as string,
 				stringData
 			);
+
 			if (!isVerified) {
-				return res.status(403).json({ message: 'Unauthorized access' });
+				return res
+					.status(403)
+					.json({ message: 'Unauthorized access', req: req.body });
 			}
 
 			// Step 2: Use the gameService to create or get the player
