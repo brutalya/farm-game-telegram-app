@@ -12,6 +12,7 @@ import { Spot } from '../entities/Spot';
 dotenv.config();
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || 'your_bot_token';
+console.log('Telegram Bot Token outside:', TELEGRAM_BOT_TOKEN);
 
 export class GameService {
 	private playerRepository = AppDataSource.getRepository(Player);
@@ -28,6 +29,8 @@ export class GameService {
 		hash: string,
 		data: Record<string, string>
 	): boolean {
+		console.log('Telegram Bot Token inside:', TELEGRAM_BOT_TOKEN);
+
 		// Step 1: Create the data check string in alphabetical order of parameters
 		const dataCheckString = Object.keys(data)
 			.sort()

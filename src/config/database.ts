@@ -19,5 +19,5 @@ export const AppDataSource = new DataSource({
 	database: process.env.DB_NAME,
 	entities: [Player, Field, Plant, Inventory, Spot, PlayerPlants], //['dist/entities/**/*.js'], // Use compiled JS files
 	synchronize: true,
-	logging: true,
+	logging: false,
 });
