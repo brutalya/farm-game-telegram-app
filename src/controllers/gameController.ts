@@ -16,8 +16,9 @@ export class GameController {
 	}
 
 	authTG = async (req: Request, res: Response) => {
-		const { id: telegramId, username, hash, ...data } = req.query;
+		const { id: telegramId, username, hash, ...data } = req.body;
 		console.log('Login payload:', telegramId, username, hash, data);
+		console.log('req:', req);
 
 		try {
 			// Convert `data` to `Record<string, string>` by filtering and mapping
