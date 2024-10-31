@@ -74,7 +74,7 @@ export class GameService {
 	async createPlayer(telegramId: string): Promise<Player> {
 		const player = new Player();
 		player.telegramId = telegramId;
-		player.money = 10;
+		player.money = 11;
 		const savedPlayer = await this.playerRepository.save(player);
 
 		const field = new Field();
