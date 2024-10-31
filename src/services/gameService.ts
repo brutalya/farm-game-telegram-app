@@ -24,7 +24,6 @@ export class GameService {
 
 	// Hash verification to ensure the request is legitimate
 	verifyTelegramData(initData: string): boolean {
-		console.log('Telegram Bot Token inside:', TELEGRAM_BOT_TOKEN);
 		// Extract `hash` from `initData`
 		const hash = new URLSearchParams(initData).get('hash');
 		console.log('Received hash:', hash);
@@ -35,8 +34,14 @@ export class GameService {
 			.update(TELEGRAM_BOT_TOKEN)
 			.digest();
 
-		// Step 2: Remove the `hash` parameter from `initData` to form `data_check_string`
-		const dataCheckString = initData.replace(/&?hash=[^&]+/, '');
+		// Step 2: Convert initData to key-value pairs, sort them alphabetically, and join with `\n`
+		const urlParams = new URLSearchParams(initData);
+		urlParams.delete('hash'); // Exclude the hash parameter
+
+		const dataCheckString = Array.from(urlParams.entries())
+			.sort(([key1], [key2]) => key1.localeCompare(key2)) // Alphabetical order
+			.map(([key, value]) => `${key}=${value}`) // Format as key=value
+			.join('\n'); // Join with newline
 
 		console.log('dataCheckString:', dataCheckString);
 
