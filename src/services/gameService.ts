@@ -27,10 +27,11 @@ export class GameService {
 		telegramId: string,
 		username: string,
 		hash: string,
-		data: string
+		data: Record<string, string>
 	): boolean {
 		console.log('Telegram Bot Token inside:', TELEGRAM_BOT_TOKEN);
 
+		console.log('data:', data);
 		// Step 1: Create the secret_key from bot_token with "WebAppData"
 		const secretKey = crypto
 			.createHmac('sha256', Buffer.from('WebAppData'))
@@ -38,12 +39,11 @@ export class GameService {
 			.digest();
 
 		// Step 2: Construct data_check_string by filtering and sorting fields
-		const dataCheckString = data;
-		// const dataCheckString = Object.keys(data)
-		// 	.filter((key) => key !== 'hash' && data[key]) // Exclude 'hash' and empty values
-		// 	.sort()
-		// 	.map((key) => `${key}=${data[key]}`)
-		// 	.join('\n');
+		const dataCheckString = Object.keys(data)
+			.filter((key) => key !== 'hash' && data[key]) // Exclude 'hash' and empty values
+			.sort()
+			.map((key) => `${key}=${data[key]}`)
+			.join('\n');
 
 		console.log('dataCheckString:', dataCheckString);
 

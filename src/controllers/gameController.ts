@@ -21,13 +21,12 @@ export class GameController {
 
 		try {
 			// Convert `data` to `Record<string, string>` by filtering and mapping
-			const stringData = data;
-			// const stringData: Record<string, string> = Object.keys(data)
-			// 	.filter((key) => typeof data[key] === 'string')
-			// 	.reduce((acc, key) => {
-			// 		acc[key] = data[key] as string;
-			// 		return acc;
-			// 	}, {} as Record<string, string>);
+			const stringData: Record<string, string> = Object.keys(data)
+				.filter((key) => typeof data[key] === 'string')
+				.reduce((acc, key) => {
+					acc[key] = data[key] as string;
+					return acc;
+				}, {} as Record<string, string>);
 
 			// Step 1: Verify that the request is valid using Telegram hash
 			const isVerified = this.gameService.verifyTelegramData(
