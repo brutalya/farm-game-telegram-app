@@ -74,7 +74,7 @@ export class GameService {
 	async createPlayer(telegramId: string): Promise<Player> {
 		const player = new Player();
 		player.telegramId = telegramId;
-		player.money = 1000;
+		player.money = 10;
 		const savedPlayer = await this.playerRepository.save(player);
 
 		const field = new Field();
@@ -89,7 +89,7 @@ export class GameService {
 			spot.spotNumber = i;
 			spot.isOccupied = false;
 			spot.isActive = i === 0; // Only the first spot is active by default
-			spot.cost = 100 + i * 50; // Increment cost by 50 for each subsequent spot
+			spot.cost = i * i * 10; // Increment cost by 50 for each subsequent spot
 			await this.spotRepository.save(spot);
 		}
 
