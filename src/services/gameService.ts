@@ -27,22 +27,41 @@ export class GameService {
 		telegramId: string,
 		username: string,
 		hash: string,
-		data: Record<string, string>
+		data: Record<string, any>
 	): boolean {
 		console.log('Telegram Bot Token inside:', TELEGRAM_BOT_TOKEN);
 
 		console.log('data:', data);
+
 		// Step 1: Create the secret_key from bot_token with "WebAppData"
 		const secretKey = crypto
 			.createHmac('sha256', Buffer.from('WebAppData'))
 			.update(TELEGRAM_BOT_TOKEN)
 			.digest();
 
+		// Flatten data to ensure all fields are accessible at top level
+		const flattenData = (data: Record<string, any>): Record<string, string> => {
+			const result: Record<string, string> = {};
+			for (const [key, value] of Object.entries(data)) {
+				if (typeof value === 'object' && value !== null) {
+					for (const [nestedKey, nestedValue] of Object.entries(value)) {
+						result[`${key}.${nestedKey}`] = String(nestedValue);
+					}
+				} else {
+					result[key] = String(value);
+				}
+			}
+			return result;
+		};
+
+		const flattenedData = flattenData(data);
+		console.log('flattenedData:', flattenedData);
+
 		// Step 2: Construct data_check_string by filtering and sorting fields
-		const dataCheckString = Object.keys(data)
-			.filter((key) => key !== 'hash' && data[key]) // Exclude 'hash' and empty values
+		const dataCheckString = Object.keys(flattenedData)
+			.filter((key) => key !== 'hash' && flattenedData[key]) // Exclude 'hash' and empty values
 			.sort()
-			.map((key) => `${key}=${data[key]}`)
+			.map((key) => `${key}=${flattenedData[key]}`)
 			.join('\n');
 
 		console.log('dataCheckString:', dataCheckString);
