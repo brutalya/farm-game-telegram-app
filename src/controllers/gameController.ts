@@ -16,60 +16,36 @@ export class GameController {
 	}
 
 	authTG = async (req: Request, res: Response) => {
-		// Extract `user`, `hash`, and other relevant fields from `req.body`
-		const { user, hash, ...data } = req.body;
-
-		// Get `telegramId` and `username` from `user` object
-		const telegramId = user?.id;
-		const username = user?.username;
-
-		console.log('Login payload:', telegramId, username, hash, data);
+		const { data } = req.body;
+		console.log('data: ', data);
 
 		try {
-			// Convert `data` to `Record<string, string>` by filtering and mapping
-			// Prepare `data` for validation, ensuring all fields are included
-			const stringData: Record<string, string> = Object.keys(data)
-				.filter((key) => typeof data[key] === 'string')
-				.reduce((acc, key) => {
-					acc[key] = data[key] as string;
-					return acc;
-				}, {} as Record<string, string>);
-
-			// Add nested `user` fields to `stringData` for validation
-			if (user) {
-				Object.entries(user).forEach(([key, value]) => {
-					if (typeof value === 'string' || typeof value === 'number') {
-						stringData[`user.${key}`] = String(value);
-					}
-				});
-			}
-
-			// Step 1: Verify that the request is valid using Telegram hash
-			const isVerified = this.gameService.verifyTelegramData(
-				telegramId as string,
-				username as string,
-				hash as string,
-				stringData
-			);
+			// Pass `initData` directly for verification
+			const isVerified = this.gameService.verifyTelegramData(data);
 
 			if (!isVerified) {
-				return res
-					.status(403)
-					.json({ message: 'Unauthorized access', req: req.body });
+				return res.status(403).json({ message: 'Unauthorized access' });
 			}
 
-			// Step 2: Use the gameService to create or get the player
-			const player = await this.gameService.createOrGetPlayer(
-				telegramId as string
+			// Extract the user info from `initData` for further processing
+			const user = JSON.parse(
+				decodeURIComponent(new URLSearchParams(data).get('user') || '')
 			);
+			const telegramId = user.id;
+			const username = user.username;
 
-			// Step 3: Generate a JWT token for the player
+			console.log('telegramId: ', telegramId);
+			console.log('username: ', username);
+
+			// Proceed with authenticated player setup
+			const player = await this.gameService.createOrGetPlayer(telegramId);
 			const token = jwt.sign(
 				{ playerId: player.id, role: 'player' },
 				JWT_SECRET,
 				{ expiresIn: '24h' }
 			);
 
+			console.log('token: ', token);
 			res.json({ token });
 		} catch (error) {
 			console.error('Error authenticating Telegram user:', error);

@@ -23,15 +23,11 @@ export class GameService {
 	private spotRepository = AppDataSource.getRepository(Spot);
 
 	// Hash verification to ensure the request is legitimate
-	verifyTelegramData(
-		telegramId: string,
-		username: string,
-		hash: string,
-		data: Record<string, any>
-	): boolean {
+	verifyTelegramData(initData: string): boolean {
 		console.log('Telegram Bot Token inside:', TELEGRAM_BOT_TOKEN);
-
-		console.log('data:', data);
+		// Extract `hash` from `initData`
+		const hash = new URLSearchParams(initData).get('hash');
+		console.log('Received hash:', hash);
 
 		// Step 1: Create the secret_key from bot_token with "WebAppData"
 		const secretKey = crypto
@@ -39,30 +35,8 @@ export class GameService {
 			.update(TELEGRAM_BOT_TOKEN)
 			.digest();
 
-		// Flatten data to ensure all fields are accessible at top level
-		const flattenData = (data: Record<string, any>): Record<string, string> => {
-			const result: Record<string, string> = {};
-			for (const [key, value] of Object.entries(data)) {
-				if (typeof value === 'object' && value !== null) {
-					for (const [nestedKey, nestedValue] of Object.entries(value)) {
-						result[`${key}.${nestedKey}`] = String(nestedValue);
-					}
-				} else {
-					result[key] = String(value);
-				}
-			}
-			return result;
-		};
-
-		const flattenedData = flattenData(data);
-		console.log('flattenedData:', flattenedData);
-
-		// Step 2: Construct data_check_string by filtering and sorting fields
-		const dataCheckString = Object.keys(flattenedData)
-			.filter((key) => key !== 'hash' && flattenedData[key]) // Exclude 'hash' and empty values
-			.sort()
-			.map((key) => `${key}=${flattenedData[key]}`)
-			.join('\n');
+		// Step 2: Remove the `hash` parameter from `initData` to form `data_check_string`
+		const dataCheckString = initData.replace(/&?hash=[^&]+/, '');
 
 		console.log('dataCheckString:', dataCheckString);
 
