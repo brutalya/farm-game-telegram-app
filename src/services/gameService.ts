@@ -31,27 +31,31 @@ export class GameService {
 	): boolean {
 		console.log('Telegram Bot Token inside:', TELEGRAM_BOT_TOKEN);
 
-		// Step 1: Create the data check string in alphabetical order of parameters
+		// Step 1: Create the secret_key from bot_token with "WebAppData"
+		const secretKey = crypto
+			.createHmac('sha256', Buffer.from('WebAppData'))
+			.update(TELEGRAM_BOT_TOKEN)
+			.digest();
+
+		// Step 2: Construct data_check_string by filtering and sorting fields
 		const dataCheckString = Object.keys(data)
+			.filter((key) => key !== 'hash' && data[key]) // Exclude 'hash' and empty values
 			.sort()
 			.map((key) => `${key}=${data[key]}`)
 			.join('\n');
 
-		console.log('dataCheckString: ', dataCheckString);
+		console.log('dataCheckString:', dataCheckString);
 
-		// Step 2: Calculate HMAC using SHA-256
-		const secretKey = crypto
-			.createHash('sha256')
-			.update(TELEGRAM_BOT_TOKEN)
-			.digest();
+		// Step 3: Calculate HMAC-SHA-256 hash of data_check_string with secret_key
 		const calculatedHash = crypto
 			.createHmac('sha256', secretKey)
 			.update(dataCheckString)
 			.digest('hex');
 
-		// Step 3: Compare the calculated hash with the provided hash
-		console.log('calculatedHash: ', calculatedHash);
-		console.log('hash: ', hash);
+		console.log('calculatedHash:', calculatedHash);
+		console.log('received hash:', hash);
+
+		// Step 4: Compare calculated hash to received hash
 		return calculatedHash === hash;
 	}
 
