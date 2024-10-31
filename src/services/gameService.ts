@@ -27,7 +27,7 @@ export class GameService {
 		telegramId: string,
 		username: string,
 		hash: string,
-		data: Record<string, string>
+		data: string
 	): boolean {
 		console.log('Telegram Bot Token inside:', TELEGRAM_BOT_TOKEN);
 
@@ -38,11 +38,12 @@ export class GameService {
 			.digest();
 
 		// Step 2: Construct data_check_string by filtering and sorting fields
-		const dataCheckString = Object.keys(data)
-			.filter((key) => key !== 'hash' && data[key]) // Exclude 'hash' and empty values
-			.sort()
-			.map((key) => `${key}=${data[key]}`)
-			.join('\n');
+		const dataCheckString = data;
+		// const dataCheckString = Object.keys(data)
+		// 	.filter((key) => key !== 'hash' && data[key]) // Exclude 'hash' and empty values
+		// 	.sort()
+		// 	.map((key) => `${key}=${data[key]}`)
+		// 	.join('\n');
 
 		console.log('dataCheckString:', dataCheckString);
 
