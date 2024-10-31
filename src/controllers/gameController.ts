@@ -16,17 +16,33 @@ export class GameController {
 	}
 
 	authTG = async (req: Request, res: Response) => {
-		const { id: telegramId, username, hash, ...data } = req.body;
+		// Extract `user`, `hash`, and other relevant fields from `req.body`
+		const { user, hash, ...data } = req.body;
+
+		// Get `telegramId` and `username` from `user` object
+		const telegramId = user?.id;
+		const username = user?.username;
+
 		console.log('Login payload:', telegramId, username, hash, data);
 
 		try {
 			// Convert `data` to `Record<string, string>` by filtering and mapping
+			// Prepare `data` for validation, ensuring all fields are included
 			const stringData: Record<string, string> = Object.keys(data)
 				.filter((key) => typeof data[key] === 'string')
 				.reduce((acc, key) => {
 					acc[key] = data[key] as string;
 					return acc;
 				}, {} as Record<string, string>);
+
+			// Add nested `user` fields to `stringData` for validation
+			if (user) {
+				Object.entries(user).forEach(([key, value]) => {
+					if (typeof value === 'string' || typeof value === 'number') {
+						stringData[`user.${key}`] = String(value);
+					}
+				});
+			}
 
 			// Step 1: Verify that the request is valid using Telegram hash
 			const isVerified = this.gameService.verifyTelegramData(
